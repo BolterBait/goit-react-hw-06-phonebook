@@ -1,31 +1,27 @@
-import { React, useState } from 'react';
-import PropTypes from 'prop-types';
+import { React } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+
+import { addContact } from 'redux/contactsSlice';
+import { getContacts } from 'redux/selectors';
 
 import { FieldName, Field, Wrap, AddButton } from './ContactForm.styled';
 
-export function ContactForm({ onSubmit }) {
-  const [name, setName] = useState();
-  const [number, setNumber] = useState();
-
-  const handleChange = e => {
-    const { name, value } = e.currentTarget;
-    if (name === 'name') {
-      setName(value);
-    }
-    if (name === 'number') {
-      setNumber(value);
-    }
-  };
+function ContactForm() {
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
   const handleSubmit = e => {
     e.preventDefault();
-    onSubmit(name, number);
-    reset();
-  };
+    const form = e.target;
+    const { name, number } = form.elements;
 
-  const reset = () => {
-    setName('');
-    setNumber('');
+    for (const contact of contacts) {
+      if (contact.name.toLowerCase() === name.value.toLowerCase()) {
+        return alert(`${name.value} is already a contact`);
+      }
+    }
+    dispatch(addContact(name.value, number.value));
+    form.reset();
   };
 
   return (
@@ -35,8 +31,6 @@ export function ContactForm({ onSubmit }) {
         <Field
           type="text"
           name="name"
-          value={name}
-          onChange={handleChange}
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
@@ -47,8 +41,6 @@ export function ContactForm({ onSubmit }) {
         <Field
           type="tel"
           name="number"
-          value={number}
-          onChange={handleChange}
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
@@ -60,8 +52,3 @@ export function ContactForm({ onSubmit }) {
 }
 
 export default ContactForm;
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func,
-  onChange: PropTypes.func,
-};
